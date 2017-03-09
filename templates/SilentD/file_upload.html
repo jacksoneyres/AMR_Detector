@@ -1,0 +1,189 @@
+{% extends 'SilentD/base2.html' %}
+{% load staticfiles %}
+{% block navbar_file_upload %} active {% endblock %}
+{% block body_block %}
+    <link href='{% static 'css/dropzone.css'%}' rel="stylesheet">
+    <script src='{% static 'js/dropzone.js' %}'></script>
+
+    <section class="content-header">
+        <h1>
+            File Upload
+        </h1>
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+
+      <div id="actions" class="row">
+        <div class="col-lg-7">
+        <!-- The fileinput-button span is used to style the file input field as button -->
+        <span class="btn btn-success fileinput-button">
+            <i class="glyphicon glyphicon-plus"></i>
+            <span>Add files...</span>
+        </span>
+        <button type="submit" class="btn btn-primary start">
+            <i class="glyphicon glyphicon-upload"></i>
+            <span>Start upload</span>
+        </button>
+        <button type="reset" class="btn btn-warning cancel">
+            <i class="glyphicon glyphicon-ban-circle"></i>
+            <span>Cancel upload</span>
+        </button>
+        </div>
+
+        <div class="col-lg-5">
+            <!-- The global file processing state -->
+            <span class="fileupload-process">
+              <div id="total-progress" class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                <div class="progress-bar progress-bar-success" style="width:0;" data-dz-uploadprogress></div>
+              </div>
+            </span>
+        </div>
+    </div>
+
+    <br>
+    <div class="panel panel-default" id="dragdrop">
+        <div class="panel-heading" style="text-align: center;">Drag and Drop Files Here</div>
+        <div class="panel-body" style="min-height: 100px; max-height: 100px; text-align: center; vertical-align: middle; color: #edece7">
+            <i class="fa fa-fw fa-cloud-upload fa-5x"></i>
+        </div>
+    </div>
+
+    <div class="table table-striped" id="previews">
+        <div id="template" class="file-row">
+            <!-- This is used as the file preview template -->
+            <div>
+                <span class="preview"><img data-dz-thumbnail /></span>
+            </div>
+            <div>
+                <p class="name" data-dz-name></p>
+                <strong class="error text-danger" data-dz-errormessage></strong>
+            </div>
+            <div>
+                <p class="size" data-dz-size></p>
+                <div class="progress progress-striped" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                  <div class="progress-bar progress-bar-success" style="width:0;" data-dz-uploadprogress></div>
+                </div>
+            </div>
+            <div>
+              <button class="btn btn-primary start">
+                  <i class="glyphicon glyphicon-upload"></i>
+                  <span>Start</span>
+              </button>
+              <button data-dz-remove class="btn btn-warning cancel">
+                  <i class="glyphicon glyphicon-ban-circle"></i>
+                  <span>Cancel</span>
+              </button>
+              <button data-dz-remove class="btn btn-danger delete">
+                <i class="glyphicon glyphicon-trash"></i>
+                <span>Delete</span>
+              </button>
+            </div>
+        </div>
+    </div>
+    <div class="alert alert-info">
+        <h4>FastQ Upload</h4>
+            <p>Currently only paired end fastq files supported and must come in the naming format of Sample_R1_001.fastq.gz and Sample_R2_001.fastq.gz</p>
+            <p>After successful upload, files are available for view in AMR</p><br>
+        <h4>Fasta Upload</h4>
+            <p>You can upload assembled fasta files of bacterial whole genomes</p>
+            <p>After successful upload, files are available for view in AMR</p>
+    </div>
+
+        <form id="ProjectForm" action="{% url "create_project" %}" name='FastQForm' method="post" enctype="multipart/form-data" class="form-inline">
+        {% csrf_token %}
+        <input type="hidden" class="form-control" name="project" id="project">
+        <input type="hidden" class="form-control" name="ids" id="ids">
+    </form>
+
+    <script>
+    // Get the template HTML and remove it from the doumenthe template HTML and remove it from the doument
+        var previewNode = document.querySelector("#template");
+        previewNode.id = "";
+        var previewTemplate = previewNode.parentNode.innerHTML;
+        previewNode.parentNode.removeChild(previewNode);
+
+        var myDropzone = new Dropzone("div#dragdrop", { // Make the whole body a dropzone
+          url: "{% url 'file_upload' %}", // Set the url
+          maxFilesize: 250000000,
+          acceptedFiles: ".fastq.gz, .fasta, .fa, .xml, .csv, .tar.gz",
+          accept: function(file, done) {
+              var found = 0;
+              if (file.name.indexOf('.fa') != -1) {
+                  done();
+              }
+              else if (file.name.indexOf('RunInfo.xml') != -1) {
+                  done();
+              }
+              else if (file.name.indexOf('GenerateFASTQRunStatistics.xml') != -1) {
+                  done();
+              }
+              else if (file.name.indexOf('SampleSheet.csv') != -1) {
+                  done();
+              }
+              else if (file.name.indexOf('.fastq.gz') != -1) {
+                  found += file.name.indexOf('_R1');
+                  found += file.name.indexOf('_R2');
+                  if (found < 0) {
+                      done("Only File Names Of The Type *_R1*.fastq.gz or *_R2*.fastq.gz accepted");
+                  }
+                  else {
+                      done();
+                  }
+              }
+              else {
+                  done();
+              }
+          },
+          thumbnailWidth: 80,
+          thumbnailHeight: 80,
+          parallelUploads: 20,
+          previewTemplate: previewTemplate,
+          autoQueue: false, // Make sure the files aren't queued until manually added
+          previewsContainer: "#previews", // Define the container to display the previews
+          clickable: ".fileinput-button" // Define the element that should be used as click trigger to select files.
+        });
+
+        myDropzone.on("addedfile", function(file) {
+          // Hookup the start button
+          file.previewElement.querySelector(".start").onclick = function() { myDropzone.enqueueFile(file); };
+        });
+        // Update the total progress bar
+        myDropzone.on("totaluploadprogress", function(progress) {
+          document.querySelector("#total-progress .progress-bar").style.width = progress + "%";
+        });
+
+        myDropzone.on("sending", function(file) {
+          // Show the total progress bar when upload starts
+
+          document.querySelector("#total-progress").style.opacity = "1";
+          // And disable the start button
+          file.previewElement.querySelector(".start").setAttribute("disabled", "disabled");
+        });
+
+        // Hide the total progress bar when nothing's uploading anymore
+        myDropzone.on("queuecomplete", function(progress) {
+            var accepted_files = myDropzone.getAcceptedFiles();
+            var arr = [];
+            for (var i = 0; i < accepted_files.length; i++) {
+                arr.push(accepted_files[i].name);
+            }
+            var serializedarr = JSON.stringify(arr);
+            $("#ids").val(serializedarr);
+            //document.getElementById("ProjectForm").submit();
+            document.querySelector("#total-progress").style.opacity = "0";
+        });
+
+        // Setup the buttons for all transfers
+        // The "add files" button doesn't need to be setup because the config
+        // `clickable` has already been specified.
+        document.querySelector("#actions .start").onclick = function() {
+          myDropzone.enqueueFiles(myDropzone.getFilesWithStatus(Dropzone.ADDED));
+        };
+        document.querySelector("#actions .cancel").onclick = function() {
+          myDropzone.removeAllFiles(true);
+        };
+
+            </script>
+    </section><!-- /.content -->
+{% endblock %}

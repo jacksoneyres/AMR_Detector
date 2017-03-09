@@ -1,0 +1,306 @@
+{% extends 'SilentD/base2.html' %}
+{% load staticfiles %}
+{% block navbar_create %} active {% endblock %}
+{% block body_block %}
+    <link href="{% static 'css/dataTables.bootstrap.css'%}" rel="stylesheet">
+    <link href="{% static 'css/dataTables.colVis.css'%}" rel="stylesheet">
+    <link href="{% static 'css/dataTables.tableTools.css'%}" rel="stylesheet">
+    <link href="{% static 'css/select2.css'%}" rel="stylesheet">
+    <link href="{% static 'css/styles.css'%}" rel="stylesheet">
+
+
+    <script src="{% static 'js/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'js/dataTables.bootstrap.js' %}"></script>
+    <script src="{% static 'js/dataTables.colVis.js' %}"></script>
+    <script src="{% static 'js/dataTables.tableTools.js' %}"></script>
+    <script src="{% static 'js/select2.js' %}"></script>
+
+    <style>
+        #scrollable-dropdown-menu .tt-dropdown-menu {
+            max-height: 150px;
+            overflow-y: auto;
+        }
+    </style>
+    <section class="content-header">
+        <h1>
+            Projects
+        </h1>
+
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+
+        <script>
+            $(document).ready(function() {
+                $('.input-group input[required], .input-group textarea[required], .input-group select[required]').on('focus change', function() {
+                    var $form = $(this).closest('form'),
+                            $group = $(this).closest('.input-group'),
+                            $addon = $group.find('.input-group-addon'),
+                            $icon = $addon.find('span'),
+                            state = false;
+
+                    if (!$group.data('validate')) {
+                        state = $(this).val() ? true : false;
+
+                    }else if ($group.data('validate') == "length") {
+                        var rows = document.querySelector('#forwardPrimer').value.split("\n").length;
+                        state = false;
+                        if (/^([AaCcGgTtWwSsMmKkRrYyBbDdHhVvNn \n])+$/.test($(this).val()) && $(this).val().split("\n").length == rows && $(this).val().length != 0) {
+                            state = true;
+                        }
+                    }else if ($group.data('validate') == "number") {
+                        state = !isNaN(parseFloat($(this).val())) && isFinite($(this).val()) && $(this).val() >= 0 && $(this).val() <= 10
+                    }
+
+                    if (state) {
+                        $addon.removeClass('danger');
+                        $addon.addClass('success');
+                        $icon.attr('class', 'glyphicon glyphicon-ok');
+                    }else{
+                        $addon.removeClass('success');
+                        $addon.addClass('danger');
+                        $icon.attr('class', 'glyphicon glyphicon-remove');
+                    }
+
+                    if ($form.find('.input-group-addon.danger').length == 0) {
+                        $('#click').prop('disabled', false);
+                        $('#click2').prop('disabled', false)
+                    }else{
+                        $('#click').prop('disabled', true);
+                        $('#click2').prop('disabled', true);
+                    }
+                });
+
+                $('.input-group input[required], .input-group textarea[required], .input-group select[required]').trigger('change');
+            });
+            $(document).on('change', '.btn-file :file', function() {
+                var input = $(this),
+                        numFiles = input.get(0).files ? input.get(0).files.length : 1,
+                        label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
+                input.trigger('fileselect', [numFiles, label]);
+            });
+
+        </script>
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{% if message.level_tag == 'error' %}danger{% else %}{{ message.level_tag }}{% endif %}">
+                    {{ message.message }}
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="alert alert-info">
+                <h4>Project Creation Guide</h4>
+                <p><strong>FastQ</strong>: Select FastQ files you have previously uploaded from the list below. Only paired end files
+                    are supported. A pair of files must follow the Illumina naming scheme of sample_R1_001.fastq.gz and sample_R2_001.fastq.gz.<br>
+                    <strong>FastA</strong>: Select whole genome fasta files you have previously uploaded from the list below.<br>
+                    <strong>Organism</strong>: Current tools expect every organism within the same project to be the same species.
+                    ARMI, and MLST both using the organism assigned to function</p>
+            </div>
+        {% endif %}
+        <div class="row">
+            <div class="col-md-12">
+
+                <!-- Default box -->
+                <div class="box box-info">
+                    <div class="box-header">
+
+                        <ul class="nav nav-tabs">
+                            <li class="nav active"><a href="#formtab1" data-toggle="tab">Create New FastQ Project</a></li>
+                            <li class="nav"><a href="#formtab2" data-toggle="tab">Create New FastA Project</a></li>
+                        </ul>
+                    </div>
+                    <div class="box-body">
+
+                        <!-- Tab panes -->
+                        <div class="tab-content">
+                            <div class="tab-pane fade in active" id='formtab1'>
+                                <form id="FastQForm" action="{% url "create_project" %}" name='FastQForm' method="post" enctype="multipart/form-data" class="form-inline">
+                                    {% csrf_token %}
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" name="name" id="name" placeholder="Project Name" required>
+                                        <span class="input-group-addon danger"><span class="glyphicon glyphicon-remove"></span></span>
+                                    </div>
+
+                                    <div class="input-group">
+                                        <select title='Organism Species' class="form-control" id="organism" name="organism" required>
+                                            <option value="" selected disabled>Organism Species</option>
+                                            <option value="Escherichia coli">Escherichia coli</option>
+                                            <option value="Listeria monocytogenes">Listeria monocytogenes</option>
+                                            <option value="Salmonella enterica">Salmonella enterica</option>
+                                            <option value="Vibrio parahaemolyticus">Vibrio parahaemolyticus</option>
+                                            <option value="Campylobacter jejuni">Campylobacter jejuni</option>
+                                            <option value="Staphylococcus aureus">Staphylococcus aureus</option>
+                                            <option value="Metagenome">Metagenome</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                        <span class="input-group-addon danger"><span class="glyphicon glyphicon-remove"></span></span>
+                                    </div>
+                                    <div class="input-group">
+                                        <select title='Type' class="form-control" id="reads" name="reads" required>
+                                            <option selected value="Paired">Paired End</option>
+                                            <option disabled value="Single">Single End</option>
+                                        </select>
+                                        <span class="input-group-addon danger"><span class="glyphicon glyphicon-remove"></span></span>
+                                    </div>
+                                    <input type="hidden" class="form-control" name="ids" id="ids">
+                                    <input type="hidden" class="form-control" name="type" value="fastq">
+                                </form>
+                                <hr>
+
+                                <h4>Add Files to Project</h4>
+
+                                <table id="fastqs" class="table table-striped table-condensed">
+                                    <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Date Modified</th>
+                                        <th>Type</th>
+                                        <th>Size(MB)</th>
+                                        <th>Add to Project</th>
+
+                                    </tr>
+                                    </thead>
+
+                                    <tbody>
+                                    {% if fastqs %}
+                                        {% for document in fastqs %}
+                                            <tr>
+                                            <td><a href="{{ document.file.url }}">{{ document.name }}</a></td>
+                                            <td>{{ document.date|date:"Y-m-d-P"  }}</td>
+                                            <td>{{ document.type }}</td>
+                                            <td>{{ document.size }}</td>
+                                            <td>
+                                                <input title='checkbox' id='{{ document.file.name }}' name='id' value="{{ document.id }}" type="checkbox" onclick="activateButton()">
+                                            </td>
+                                        {% endfor %}
+                                    {% else %}
+                                        <p>No documents.</p>
+                                    {% endif %}
+
+                                    </tbody>
+                                </table>
+                                <button type="button" id="click" class="btn btn-primary">Create</button>
+                            </div>
+                            <!-- Fasta Project Tab -->
+                            <div class="tab-pane fade in" id='formtab2'>
+                                <form id="FastaForm" action="{% url "create_project" %}" name='FastaForm' method="post" enctype="multipart/form-data" class="form-inline">
+                                    {% csrf_token %}
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" name="name" id="name" placeholder="Project Name" required>
+                                        <span class="input-group-addon danger"><span class="glyphicon glyphicon-remove"></span></span>
+                                    </div>
+                                    <div class="input-group">
+                                        <select title='Organism Species' class="form-control" id="organism" name="organism" required style="width: 100%">
+                                            <option value="disabled" selected disabled>Organism Species&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>
+                                            <option value="Escherichia coli">Escherichia coli</option>
+                                            <option value="Listeria monocytogenes">Listeria monocytogenes</option>
+                                            <option value="Salmonella enterica">Salmonella enterica</option>
+                                            <option value="Vibrio parahaemolyticus">Vibrio parahaemolyticus</option>
+                                            <option value="Campylobacter jejuni">Campylobacter jejuni</option>
+                                            <option value="Staphylococcus aureus">Staphylococcus aureus</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                        <span class="input-group-addon danger"><span class="glyphicon glyphicon-remove"></span></span>
+                                    </div>
+                                    <input type="hidden" class="form-control" name="ids2" id="ids2">
+                                    <input type="hidden" class="form-control" name="type" value="fasta">
+                                </form>
+                                <hr>
+                                <h4>Add Files to Project</h4>
+
+                                <table id="fastas" class="table table-striped table-condensed">
+                                    <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Date Modified</th>
+                                        <th>Type</th>
+                                        <th>Size(MB)</th>
+                                        <th>Add to Project</th>
+                                    </tr>
+                                    </thead>
+
+                                    <tbody>
+                                    {% if fastas %}
+                                        {% for document in fastas %}
+                                            <tr>
+                                            <td><a href="{{ document.file.url }}">{{ document.name }}</a></td>
+                                            <td>{{ document.date|date:"Y-m-d-P"  }}</td>
+                                            <td>{{ document.type }}</td>
+                                            <td>{{ document.size }}</td>
+                                            <td>
+                                                <input title='checkbox' id='{{ document.file.name }}' name='id' value="{{ document.id }}" type="checkbox" onclick="activateButton2()">
+                                            </td>
+                                        {% endfor %}
+                                    {% else %}
+                                        <p>No documents.</p>
+                                    {% endif %}
+
+                                    </tbody>
+                                </table>
+                                <button type="button" id="click2" class="btn btn-primary">Create</button>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- /.box-body -->
+            </div><!-- /.box -->
+        </div><!-- /.col -->
+        <script type="text/javascript">
+            jQuery(document).ready(function($) {
+
+                // FastQ File Table Initialization
+                var table = $('#fastqs').DataTable( {"order": [[ 1, "desc" ]]} );
+                var table2 = $('#fastas').DataTable( {"order": [[ 1, "desc" ]]} );
+
+                // When the button is clicked, all the table checkboxes get turned into a string and become the
+                // value of the hidden ids form input. Then the form is submitted to the server
+                $('#click').click( function() {
+                    var data = table.$('input, select').serialize();
+                    var count = (data.match(/&/g)||[]).length;
+
+                    //Check for Paired or Single Reads
+                    var e = document.getElementById("reads");
+                    var read_type = (e.options[e.selectedIndex].value);
+
+                    if (read_type == 'Paired') {
+                        // Ensure multiples of 2 files by checking for 1 '&' per two files
+                        if (count%2 == 0) {
+                            alert("Error: 1 or more files is not paired");
+                        } else if (count > 64) {
+                            alert("Error: Cannot create a project greater than 32 Samples (64 Files)");
+                        } else {
+                            $('#ids').val(data);
+                            document.getElementById("FastQForm").submit();
+                        }
+                    } else {
+                        $('#ids').val(data);
+                        document.getElementById("FastQForm").submit();
+                    }
+                } );
+
+                $('#click2').click( function() {
+                    var data = table2.$('input, select').serialize();
+                    console.log(data);
+                    var num = data.match(/\d+/g);
+
+                    if (num == null) {
+                        alert("Must select atleast 1 file");
+                    } else {
+                        $('#ids2').val(data);
+                        document.getElementById("FastaForm").submit();
+                    }
+                } );
+
+            } );
+            function activateButton() {
+                $('#click').prop('disabled', false);
+            }
+            function activateButton2() {
+                $('#click2').prop('disabled', false);
+            }
+            $(document).ready(function() {
+                $('select').select2();
+            });
+        </script>
+    </section><!-- /.content -->
+{% endblock %}

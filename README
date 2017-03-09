@@ -1,0 +1,11 @@
+Requires POSTGRES, RabbitMQ, Docker
+
+SETUP
+
+docker run --name postgres --restart=always -v /home/eyresj/Postgres_Test:/var/lib/postgresql/data/pgdata -e POSTGRES_PASSWORD=biohazard -e POSTGRES_USER=admin -e POSTGRES_DB=mydb -d postgres
+
+docker run -d --restart=always --hostname rabbit --name rabbit rabbitmq:3
+
+docker run -v /mnt/portal/genomics_portal:/app/documents -p 0.0.0.0:8000:8000 --link rabbit:rabbit --link postgres:db portal
+
+
