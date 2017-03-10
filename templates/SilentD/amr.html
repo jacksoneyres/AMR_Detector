@@ -255,44 +255,46 @@
 
 
 // Build the data arrays
-for (i = 0; i < dataLen; i += 1) {
+    var value;
+    for (i = 0; i < dataLen; i += 1) {
 
-    // add browser data
-    browserData.push({
-        name: categories[i],
-        y: data[i].y,
-        color: data[i].color
-    });
-
-    // add version data
-    var colourRarity;
-    drillDataLen = data[i].drilldown.data.length;
-    for (j = 0; j < drillDataLen; j += 1) {
-        value = data[i].drilldown.data[j];
-        if (value < 0.1) {
-            colourRarity = '#E50500';
-        } else if (value < 0.25) {
-            colourRarity = '#F2615E';
-        } else if(value < 0.5) {
-            colourRarity = '#FFBDBD';
-        } else {
-            colourRarity = 'grey';
-        }
-        brightness = 0.2 - (j / drillDataLen) / 5;
-        versionsData.push({
-            name: data[i].drilldown.categories[j],
-            y: 1, //data[i].drilldown.data[j],
-            info: data[i].drilldown.identity[j],
-            anno: data[i].drilldown.annotation[j],
-            color: Highcharts.Color(data[i].color).brighten(brightness).get()});
-        rarityData.push({
-            name: data[i].drilldown.categories[j],
-            y: 1, //data[i].drilldown.data[j],
-            info: value,
-            color: colourRarity
+        // add browser data
+        browserData.push({
+            name: categories[i],
+            y: data[i].y,
+            color: data[i].color
         });
+
+        // add version data
+        var colourRarity;
+        drillDataLen = data[i].drilldown.data.length;
+        for (j = 0; j < drillDataLen; j += 1) {
+            value = data[i].drilldown.data[j];
+            if (value < 0.1) {
+                colourRarity = '#E50500';
+            } else if (value < 0.25) {
+                colourRarity = '#F2615E';
+            } else if (value < 0.5) {
+                colourRarity = '#FFBDBD';
+            } else {
+                colourRarity = 'grey';
+            }
+            brightness = 0.2 - (j / drillDataLen) / 5;
+            versionsData.push({
+                name: data[i].drilldown.categories[j],
+                y: 1, //data[i].drilldown.data[j],
+                info: data[i].drilldown.identity[j],
+                anno: data[i].drilldown.annotation[j],
+                color: Highcharts.Color(data[i].color).brighten(brightness).get()
+            });
+            rarityData.push({
+                name: data[i].drilldown.categories[j],
+                y: 1, //data[i].drilldown.data[j],
+                info: value,
+                color: colourRarity
+            });
+        }
     }
-}
 
 // Create the chart
 Highcharts.chart('container', {
