@@ -525,27 +525,55 @@ def amr(request):
                 json_dict = {}
                 with open("documents/AMR/AMR_Data.json") as f:
                     json_dict = json.loads(f.read())
-                    print json_dict
+                    #print json_dict
                 with open(proj_obj.geneseekr_results.name) as g:
                     reader = csv.DictReader(g)
                     result = {}
                     for row in reader:
                         for key, value in row.iteritems():
-                            result[str(key).lstrip()] = [value]
+                            result[str(key).lstrip()] = str(value).replace("%", "")
                     result.pop("Strain")
-                    print result
+                    #print result
                 display_dict = {}
                 if "Escherichia" in proj_obj.reference:
                     rarity_name = "ECOLI"
-                    for key, value in result.items():
-                        if rarity_name in json_dict[key]:
-                            rarity = json_dict[key]["ECOLI"]
-                        display_dict[key] = {"identity": value,
-                                             "class": json_dict[key]["class"],
-                                             "antibiotic": json_dict[key]["antibiotic"],
-                                             "rarity": rarity}
+                elif "Listeria" in proj_obj.reference:
+                    rarity_name = "LISTERIA"
+                elif "Salmonella" in proj_obj.reference:
+                    rarity_name = "SALMONELLA"
+                elif "Shigella" in proj_obj.reference:
+                    rarity_name = "ECOLI"
+                elif "Yersinia" in proj_obj.reference:
+                    rarity_name = "YERSINIA"
+                elif "Campylobacter" in proj_obj.reference:
+                    rarity_name = "CAMPY_COLI"
+                else:
+                    rarity_name = "OTHER"
 
-                    print display_dict
+                for key, value in result.items():
+                    if rarity_name in json_dict[key]:
+                        rarity = json_dict[key]["ECOLI"]
+                    else:
+                        rarity = 0
+                    display_dict[key] = {"identity": value,
+                                         "class": json_dict[key]["class"],
+                                         "antibiotic": json_dict[key]["antibiotic"],
+                                         "rarity": rarity,
+                                         "annotation": json_dict[key]["annotation"]}
+
+                    classes = set()
+                    results_dict = {}
+                    for key, value in display_dict.items():
+                        classes.add(value["class"])
+                    for item in classes:
+                        results_dict[item] = {}
+                    for item in classes:
+                        for key, value in display_dict.items():
+                            if value["class"] == item:
+                                results_dict[item][key] = value
+                print results_dict
+                all_projects = Project.objects.filter(user=username)
+                return render(request, 'SilentD/amr.html', {'projects': all_projects, 'results': results_dict})
 
                 # # Create list containing description, organism species, job date and type
                 # caption = [amr_object.tag, amr_object.organism, amr_object.date, amr_object.type]

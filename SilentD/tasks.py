@@ -216,7 +216,7 @@ def amr_task(self, obj_id):
         try:
             project_obj.amr_results = "Running"
             project_obj.save()
-            distances = check_output(['./mash', 'dist', data.file.name, "documents/Mash/RefSeqSketchesDefaults.msh"]).splitlines()
+            distances = check_output(['./mash', 'dist', data.file.name, "documents/Mash/RefSeqMarch2017.msh"]).splitlines()
             distances_split = []
             for line in distances:
                 distances_split.append(line.split("\t"))
