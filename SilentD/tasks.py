@@ -221,7 +221,7 @@ def amr_task(self, obj_id):
             for line in distances:
                 distances_split.append(line.split("\t"))
             if len(distances_split) > 0:
-                sorted_list = sorted(distances_split, key=lambda x: x[4], reverse=True)
+                sorted_list = sorted(distances_split, key=lambda x: x[3])
                 project_obj.reference = sorted_list[0][1]
                 if "Escherichia_coli" in sorted_list[0][1]:
                     print "detected"
@@ -237,7 +237,7 @@ def amr_task(self, obj_id):
             print sorted_list[0]
             print "Running GeneSeekR"
 
-            call(['GeneSeekr', '-i', working_dir, '-o', working_dir, '-m', "documents/AMR/NCBI_AMR_170113.fasta"])
+            call(['GeneSeekr', '-i', working_dir, '-o', working_dir, '-m', "documents/AMR/NCBI_AMR_170113.fasta", "-c", "90"])
 
             # Save Results, Check file exists, if so, make sure it actually contains results
             result_file = glob.glob(os.path.join(working_dir, '*.csv'))

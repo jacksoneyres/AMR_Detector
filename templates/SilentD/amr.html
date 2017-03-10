@@ -7,8 +7,6 @@
     <link href="{% static 'css/styles.css'%}" rel="stylesheet">
     <link href="{% static 'css/dataTables.colVis.css'%}" rel="stylesheet">
     <link href="{% static 'css/dataTables.tableTools.css'%}" rel="stylesheet">
-    <link href="{% static 'css/bootstrap-slider.css'%}" rel="stylesheet">
-    <link href="{% static 'css/select2.css' %}" rel="stylesheet">
 
     <script src="{% static 'js/jquery.dataTables.min.js' %}"></script>
     <script src="{% static 'js/dataTables.bootstrap.js' %}"></script>
@@ -16,9 +14,7 @@
     <script src="{% static 'js/dataTables.tableTools.js' %}"></script>
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <script src="https://code.highcharts.com/modules/exporting.js"></script>
-    <!--<script src="{% static 'js/modules/exporting.js' %}"></script>
-    <script src="{% static 'js/bootstrap-slider.js' %}"></script>
-    <script src="{% static 'js/select2.js' %}"></script>-->
+
 
     <style>
 
@@ -32,7 +28,7 @@
         .loading,.loading>td,.loading>th,.nav li.loading.active>a,.pagination li.loading,.pagination>li.active.loading>a,.pager>li.loading>a{
             background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, rgba(0, 0, 0, 0) 25%, rgba(0, 0, 0, 0) 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, rgba(0, 0, 0, 0) 75%, rgba(0, 0, 0, 0));
             background-size: 40px 40px;
-            animation: 2s linear 0s normal none infinite progress-bar-stripes;
+            animation: 2s linear 0s normal none infinite;
             -webkit-animation: progress-bar-stripes 2s linear infinite;
         }
         .btn.btn-default.loading,input[type="text"].loading,select.loading,textarea.loading,.well.loading,.list-group-item.loading,.pagination>li.active.loading>a,.pager>li.loading>a{
@@ -173,7 +169,32 @@
                                 <div class="tab-pane fade in active" id=2>
                                     <div id="container" style="width: 750px; height: 600px; margin: 0 auto"></div>
                                 </div>
+                                 <table id="T2" class="table table-striped table-condensed">
+                                    <caption style="font-size: 1.5em">{{ caption.3 }} AMR Results for {{ caption.0 }}<br>Prevalence Calculated From {{ caption.1 }}</caption>
+                                    <thead>
+                                    <tr><th>Class</th>
+                                        <th>Accession</th>
+                                        <th>Identity</th>
+                                        <th>Prevalence</th>
+                                        <th>Annotation</th>
+                                    </tr>
+                                    </thead>
 
+                                    <tbody>
+                                    {% for key,value in results.items %}
+                                        {% for k,v in value.items %}
+                                            <tr>
+                                                <td>{{ key }}</td>
+                                                <td><a href="https://www.ncbi.nlm.nih.gov/nuccore/{{ k }}">{{ k }}</a></td>
+                                                <td>{{ v.identity }}</td>
+                                                <td>{{ v.rarity }}</td>
+                                                <td>{{ v.annotation }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    {% endfor %}
+                                    </tbody>
+
+                                </table>
                             {% endif %}
                             </div><!-- /.box-body -->
                         </div><!-- /.box -->
@@ -181,21 +202,29 @@
                 </div>
             </div>
 
-            <!-- Datatables Initialization Script -->
-            <script type="text/javascript">
+<!-- Datatables Initialization Script -->
+<script type="text/javascript">
 
-                //Initialize datatables and sort by Date descending
-                $('#T1').DataTable( {
-                    "order": [[ 0, "desc" ]],
-                } );
+    //Initialize datatables and sort by Date descending
+    $('#T1').DataTable( {
+        "order": [[ 0, "desc" ]]
+    } );
 
-                $(".progress-bar").animate({
-                    width: "100%"
-                }, 11000);
+    $('#T2').DataTable( {
+        dom: 'CT<"clear">lfrtip',
+        tableTools: {
+            "aButtons": [ "copy", "xls","print"],
+            "sSwfPath": '{% static 'swf/copy_csv_xls_pdf.swf' %}'
+        },
+        "sScrollX": "100%"
+    } );
 
-                var colors = Highcharts.getOptions().colors,
-    categories = [{% for key in results %}"{{ key }}",{% endfor %}],
 
+    $(".progress-bar").animate({
+        width: "100%"
+    }, 11000);
+
+    var categories = [{% for key in results %}"{{ key }}",{% endfor %}],
     data = [
         {% for key, value in results.items %}
             {
@@ -204,14 +233,17 @@
                 drilldown: {
                     name: 'NCBI Accession',
                     categories: [{% for k, v in value.items %}'{{ k }}',{% endfor %}],
-                    data: [{% for k,v in value.items %}{{ v.rarity }},{% endfor %}],
+                    data: [{% if caption.1 == 'N/A' %}
+                            {% for k,v in value.items %}1,{% endfor %}
+                          {% else %}
+                            {% for k,v in value.items %}{{ v.rarity }},{% endfor %}
+                          {% endif %}],
                     identity: [{% for k,v in value.items %}"{{ v.identity }}",{% endfor %}],
                     annotation: [{% for k,v in value.items %}"{{ v.annotation }}",{% endfor %}]
                 }
-        },
+            },
         {% endfor %}
-            ],
-
+    ],
     browserData = [],
     versionsData = [],
     rarityData = [],
@@ -236,7 +268,7 @@ for (i = 0; i < dataLen; i += 1) {
     var colourRarity;
     drillDataLen = data[i].drilldown.data.length;
     for (j = 0; j < drillDataLen; j += 1) {
-        value = data[i].drilldown.data[j]
+        value = data[i].drilldown.data[j];
         if (value < 0.1) {
             colourRarity = '#E50500';
         } else if (value < 0.25) {
@@ -268,10 +300,10 @@ Highcharts.chart('container', {
         type: 'pie'
     },
     title: {
-        text: 'NCBI AMR Target Detection For'
+        text: 'NCBI AMR Target Detection For ' + "{{ caption.0 }}"
     },
     subtitle: {
-        text: 'Prevalence Calculated For'
+        text: 'Prevalence Calculated For ' + "{{ caption.1 }}"
     },
     yAxis: {
         title: {
@@ -324,7 +356,7 @@ Highcharts.chart('container', {
     }]
 });
 
-            </script>
+</script>
 
     </section><!-- /.content -->
 {% endblock %}

@@ -535,20 +535,42 @@ def amr(request):
                     result.pop("Strain")
                     #print result
                 display_dict = {}
-                if "Escherichia" in proj_obj.reference:
+                if "Escherichia_coli" in proj_obj.reference:
                     rarity_name = "ECOLI"
-                elif "Listeria" in proj_obj.reference:
+                    organism = "Escherichia_coli"
+                elif "Listeria_monocytogenes" in proj_obj.reference:
                     rarity_name = "LISTERIA"
-                elif "Salmonella" in proj_obj.reference:
+                    organism = "Listeria_monocytogenes"
+                elif "Salmonella_enterica" in proj_obj.reference:
                     rarity_name = "SALMONELLA"
-                elif "Shigella" in proj_obj.reference:
-                    rarity_name = "ECOLI"
-                elif "Yersinia" in proj_obj.reference:
+                    organism = "Salmonella_enterica"
+                elif "Shigella_boydii" in proj_obj.reference:
+                    rarity_name = "SHIGELLA_B"
+                    organism = "Shigella_boydii"
+                elif "Shigella_sonnei" in proj_obj.reference:
+                    rarity_name = "SHIGELLA_S"
+                    organism = "Shigella_sonnei"
+                elif "Shigella_flexneri" in proj_obj.reference:
+                    rarity_name = "SHIGELLA_F"
+                    organism = "Shigella_flexneri"
+                elif "Shigella_dysenteriae" in proj_obj.reference:
+                    rarity_name = "SHIGELLA_D"
+                    organism = "Shigella_dysenteriae"
+                elif "Vibrio_parahaemolyticus" in proj_obj.reference:
+                    rarity_name = "VIBRIO"
+                    organism = "Vibrio_parahaemolyticus"
+                elif "Yersinia_enterocolitica" in proj_obj.reference:
                     rarity_name = "YERSINIA"
-                elif "Campylobacter" in proj_obj.reference:
+                    organism = "Yersinia_enterocolitica"
+                elif "Campylobacter_coli" in proj_obj.reference:
                     rarity_name = "CAMPY_COLI"
+                    organism = "Campylobacter_coli"
+                elif "Campylobacter_jejuni" in proj_obj.reference:
+                    rarity_name = "CAMPY_JEJUNI"
+                    organism = "Campylobacter_jejuni"
                 else:
                     rarity_name = "OTHER"
+                    organism = "N/A"
 
                 for key, value in result.items():
                     if rarity_name in json_dict[key]:
@@ -573,7 +595,10 @@ def amr(request):
                                 results_dict[item][key] = value
                 print results_dict
                 all_projects = Project.objects.filter(user=username)
-                return render(request, 'SilentD/amr.html', {'projects': all_projects, 'results': results_dict})
+                caption = [proj_obj.description, organism]
+                return render(request, 'SilentD/amr.html', {'projects': all_projects,
+                                                            'results': results_dict,
+                                                            "caption": caption})
 
                 # # Create list containing description, organism species, job date and type
                 # caption = [amr_object.tag, amr_object.organism, amr_object.date, amr_object.type]
