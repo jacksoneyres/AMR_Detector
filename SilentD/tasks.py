@@ -75,8 +75,8 @@ def amr_task(self, obj_id):
                 project_obj.save()
 
         except Exception as e:
-             print "Error, GeneSeekR failed!", e.__doc__, e.message
-             project_obj.amr_results = "Error"
+            print "Error, GeneSeekR failed!", e.__doc__, e.message
+            project_obj.amr_results = "Error"
 
 
 @app.task(bind=True)
@@ -107,7 +107,7 @@ def amr_fastq_task(self, obj_id):
     print "Copying AMR Databases Over to AMR Working Dir"
     path_arg = 'documents/Targets/ARGannot.r1.fasta'
     path_res = 'documents/Targets/ResFinder.fasta'
-    end_arg = os.path.join(data_path,'ARGannot.fasta')
+    end_arg = os.path.join(data_path, 'ARGannot.fasta')
     end_res = os.path.join(data_path, 'ResFinder.fasta')
 
     shutil.copyfile(path_arg, end_arg)
@@ -168,6 +168,3 @@ def amr_fastq_task(self, obj_id):
                 os.remove(os.path.join(root, name))
         for name in dirs:
             os.rmdir(os.path.join(root, name))
-
-
-
