@@ -90,12 +90,6 @@
             <p>After successful upload, files are available for view in AMR</p>
     </div>
 
-        <form id="ProjectForm" action="{% url "create_project" %}" name='FastQForm' method="post" enctype="multipart/form-data" class="form-inline">
-        {% csrf_token %}
-        <input type="hidden" class="form-control" name="project" id="project">
-        <input type="hidden" class="form-control" name="ids" id="ids">
-    </form>
-
     <script>
     // Get the template HTML and remove it from the doumenthe template HTML and remove it from the doument
         var previewNode = document.querySelector("#template");
