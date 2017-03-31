@@ -40,15 +40,52 @@ def amr_task(self, obj_id):
             os.makedirs(working_dir)
         shutil.copyfile(data.file.name, end_path)
 
+    if project_obj.type == "fasta":
+            try:
+                project_obj.amr_results = "Running"
+                project_obj.save()
+                distances = check_output(['./mash', 'dist', data.file.name, "documents/Mash/RefSeqMarch2017.msh"]).splitlines()
+                distances_split = []
+                for line in distances:
+                    distances_split.append(line.split("\t"))
+                if len(distances_split) > 0:
+                    sorted_list = sorted(distances_split, key=lambda x: x[2])
+                    project_obj.reference = sorted_list[0][1]
+                    if "Escherichia_coli" in sorted_list[0][1]:
+                        project_obj.organism = "Escherichia"
+                    elif "Listeria" in sorted_list[0][1]:
+                        project_obj.organism = "Listeria"
+                    elif "Salmonella" in sorted_list[0][1]:
+                        project_obj.organism = "Salmonella"
+                    else: project_obj.organism = "Other"
+                    project_obj.save()
+
+                print distances_split[0]
+                print sorted_list[0]
+                print "Running GeneSeekR"
+
+                call(['GeneSeekr', '-i', working_dir, '-o', working_dir, '-m', "documents/AMR/NCBI_AMR_170113.fasta", "-c", "90"])
+
+                # Save Results, Check file exists, if so, make sure it actually contains results
+                result_file = glob.glob(os.path.join(working_dir, '*.csv'))
+                if len(result_file) == 1:
+                    print "GeneSeekR File Detected"
+                    project_obj.geneseekr_results.name = result_file[0]
+                    project_obj.amr_results = "Success"
+                    project_obj.save()
+
+            except Exception as e:
+                print "Error, GeneSeekR failed!", e.__doc__, e.message
+                project_obj.amr_results = "Error"
+
+    else:
         try:
-            project_obj.amr_results = "Running"
-            project_obj.save()
-            distances = check_output(['./mash', 'dist', data.file.name, "documents/Mash/RefSeqMarch2017.msh"]).splitlines()
+            distances = check_output(['./mash', 'dist', data_files[0].file.name, "documents/Mash/RefSeqMarch2017.msh"]).splitlines()
             distances_split = []
             for line in distances:
                 distances_split.append(line.split("\t"))
             if len(distances_split) > 0:
-                sorted_list = sorted(distances_split, key=lambda x: x[3])
+                sorted_list = sorted(distances_split, key=lambda x: x[2])
                 project_obj.reference = sorted_list[0][1]
                 if "Escherichia_coli" in sorted_list[0][1]:
                     print "detected"
@@ -57,25 +94,26 @@ def amr_task(self, obj_id):
                     project_obj.organism = "Listeria"
                 elif "Salmonella" in sorted_list[0][1]:
                     project_obj.organism = "Salmonella"
-                else: project_obj.organism = "Other"
+                else:
+                    project_obj.organism = "Other"
                 project_obj.save()
 
-            print distances_split[0]
-            print sorted_list[0]
-            print "Running GeneSeekR"
+                print distances_split[0]
+                print sorted_list[0]
+                print "Running SRST2"
 
-            call(['GeneSeekr', '-i', working_dir, '-o', working_dir, '-m', "documents/AMR/NCBI_AMR_170113.fasta", "-c", "90"])
+                call(['srst2', '--input_pe', data_files[0].file.name, data_files[1].file.name, '--output', os.path.join(working_dir, str(project_obj.id)), '--gene_db', "documents/AMR/NCBI_AMR_170113_SRST2.fasta"])
 
-            # Save Results, Check file exists, if so, make sure it actually contains results
-            result_file = glob.glob(os.path.join(working_dir, '*.csv'))
-            if len(result_file) == 1:
-                print "GeneSeekR File Detected"
-                project_obj.geneseekr_results.name = result_file[0]
-                project_obj.amr_results = "Success"
-                project_obj.save()
+                # Save Results, Check file exists, if so, make sure it actually contains results
+                result_file = glob.glob(os.path.join(working_dir, '*fullgenes*.txt'))
+                if len(result_file) == 1:
+                    print "SRST2 File Detected"
+                    project_obj.srst2_results.name = result_file[0]
+                    project_obj.amr_results = "Success"
+                    project_obj.save()
 
         except Exception as e:
-            print "Error, GeneSeekR failed!", e.__doc__, e.message
+            print "Error, SRST2 failed!", e.__doc__, e.message
             project_obj.amr_results = "Error"
 
 

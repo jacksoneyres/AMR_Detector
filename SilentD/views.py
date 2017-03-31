@@ -1,6 +1,4 @@
 import csv
-import os
-from collections import defaultdict
 import json
 # Django Related Imports
 from django.shortcuts import render
@@ -12,7 +10,6 @@ from django.http import HttpResponseRedirect
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
-from django.utils import timezone
 from .forms import UserForm
 # Database Models
 from .models import Data
@@ -22,8 +19,6 @@ from .models import Profile
 # Celery Tasks
 from .tasks import amr_task
 
-# Other Functions
-import datetime
 
 # Create your views here.
 def register(request):
@@ -136,6 +131,8 @@ def file_upload(request):
         file_name = str(request.FILES['file'])
         # Save model first to generate ID, then upload the file to the folder with ID
         if 'fastq.gz' in file_name:
+            fastq_list = Data.objects.filter(user=username, type='FastQ').order_by('-date')
+
             newdoc = Data(user=username, type='FastQ')
             newdoc.save()
             newdoc.file = request.FILES['file']
@@ -143,10 +140,9 @@ def file_upload(request):
             newdoc.name = newdoc.file.name.split('/')[-1]
             newdoc.save()
 
-            '''# Try to find a matching fastq in database to merge the pair into a project. This is done by comparing the
+            # Try to find a matching fastq in database to merge the pair into a project. This is done by comparing the
             # file name with the corresponding R1 and R2 values so see if they match. The most recently uploaded files
             # will be matched and script will exit loop and proceed
-            fastq_list = Data.objects.filter(user=username, type='FastQ').order_by('-date')
 
             file_name_split = newdoc.name.split('_')
             if len(file_name_split) < 2:
@@ -173,31 +169,23 @@ def file_upload(request):
                         if (r_value_1 == 'R1' and r_value_2 == 'R2') or (r_value_1 == 'R2' and r_value_2 == 'R1'):
                             print "Found A Match!"
                             # Create a new project database entry with the two matched files, organism to be determined
-                            # using S16 methods.
+                            # using mash
 
-                            # # Only create a project if another one of same name not created within 10 seconds
-                            # existing_project = Project.objects.filter(user=username, description=file_name_1)
-                            # if len(existing_project) > 0:
-                            #     td = (datetime.datetime.now() - existing_project[0].date).total_seconds()
-                            #     if td < 10:
-                            #         return render(request, 'SilentD/file_upload.html', {})
-                            # else:
                             new_project = Project(user=username, description=file_name_1)
                             new_project.save()
                             new_project.files.add(newdoc)
                             new_project.files.add(fastq)
                             new_project.num_files = 2
                             new_project.description = file_name_1
-                            new_project.type = 'Individual'
+                            new_project.type = 'fastq'
                             new_project.save()
                             # Start the automatic analysis now that a match has been found
-                            # pipeline_task.delay(new_project.id)
+                            amr_task.delay(new_project.id)
                             return render(request, 'SilentD/file_upload.html', {})
 
             print 'No Match Found'
-            '''
 
-        elif '.fa' in file_name:
+        elif '.fasta' in file_name:
             # Database entry must be saved first to generate unique ID
             newdoc = Data(user=username, type='Fasta')
             newdoc.save()
@@ -221,7 +209,7 @@ def file_upload(request):
 
 @login_required
 def amr(request):
-    #Project.objects.all().delete()
+    # Project.objects.all().delete()
     username = ''
     if request.user.is_authenticated():
         username = request.user.username
@@ -239,20 +227,26 @@ def amr(request):
 
             # Form data is the path to result file
 
-
-            if 'GeneSeekr' in path:
+            if 'GeneSeekr' or "SRST2" in path:
                 json_dict = {}
                 with open("documents/AMR/AMR_Data.json") as f:
                     json_dict = json.loads(f.read())
-                    #print json_dict
-                with open(proj_obj.geneseekr_results.name) as g:
-                    reader = csv.DictReader(g)
-                    result = {}
-                    for row in reader:
-                        for key, value in row.iteritems():
-                            result[str(key).lstrip()] = str(value).replace("%", "")
-                    result.pop("Strain")
-                    #print result
+                if "GeneSeekr" in path:
+                    with open(proj_obj.geneseekr_results.name) as g:
+                        reader = csv.DictReader(g)
+                        result = {}
+                        for row in reader:
+                            for key, value in row.iteritems():
+                                result[str(key).lstrip()] = str(value).replace("%", "")
+                        result.pop("Strain")
+                elif "SRST2" in path:
+                    with open(proj_obj.srst2_results.name) as g:
+                        result = {}
+                        lines = g.readlines()
+                        lines.pop(0)
+                        for line in lines:
+                            line = line.split("\t")
+                            result[line[3]] = 100.0 - float(line[8])
                 display_dict = {}
                 if "Escherichia_coli" in proj_obj.reference:
                     rarity_name = "ECOLI"
@@ -293,7 +287,7 @@ def amr(request):
 
                 for key, value in result.items():
                     if rarity_name in json_dict[key]:
-                        rarity = json_dict[key]["ECOLI"]
+                        rarity = json_dict[key][rarity_name]
                     else:
                         rarity = 0
                     display_dict[key] = {"identity": value,

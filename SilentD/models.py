@@ -87,16 +87,6 @@ def generate_path(self, filename):
     unique_path = today.strftime("%Y%m%d") + "/" + str(self.id)
     if 'Data' in object_type:
         path = "documents/Files/%s/%s/%s" % (self.user, unique_path, filename)
-    elif 'MiSeq' in object_type:
-        path = "documents/MiSeq/%s/%s/%s" % (self.user, self.id, filename)
-    elif 'MLST' in object_type:
-        path = "documents/MLST/%s/%s/%s" % (self.user, self.id, filename)
-    elif 'AMR' in object_type:
-        path = "documents/AMR/%s/%s/%s" % (self.user, self.id, filename)
-    elif 'SNP' in object_type:
-        path = "documents/SNP/%s/%s" % (self.id, filename)
-    elif 'Galaxy' in object_type:
-        path = "documents/TEST/%s/%s" % (self.id, filename)
     return path
 
 
@@ -108,7 +98,7 @@ class Data(Base):
 
 
 class Project(Base):
-    """Projects are a collection of FastQ files for analysis"""
+    """Projects are a collection of FastQ files or a Fasta for analysis"""
     files = models.ManyToManyField(Data)  # List of FastQ (Data) files
     num_files = models.IntegerField(default=0)
     organism = models.CharField(max_length=200, blank=True)

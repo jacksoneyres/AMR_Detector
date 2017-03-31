@@ -57,36 +57,11 @@
                         <div id="collapseThree" class="panel-collapse collapse">
                             <div class="panel-body">
                                 Antimicrobial Resistance Detector determines the presence of resistance marker genes in bacterial genomes<br>
-                                <a href="http://www.ncbi.nlm.nih.gov/books/NBK279690/">BLAST+</a> (NCBI) or SRST2 is used in conjunction with
+                                <a href="http://www.ncbi.nlm.nih.gov/books/NBK279690/">BLAST+</a> (NCBI) or
+                                <a href="https://github.com/katholt/srst2">SRST2 (Holt Lab)</a> is used in conjunction with
                                 the <a href="https://www.ncbi.nlm.nih.gov/bioproject/313047">Bacterial Antimicrobial Resistance Reference Gene Database (NCBI)</a>
-                                Rarity calculated based on hits amongst a species. Currently Rarity scales support E.Coli, Salmonella, Listeria, Vibrio, Staph and Campylobactor.
-                                If the organism doesn't correspond to these 6 bacteria, then rarity will be calculated for all bacteria genomes in our database<br><br>
-                                <table class="table table-condensed">
-                                    <tr>
-                                        <th class="tg-031e">Rarity (Higher is Rarer)</th>
-                                        <th class="tg-031e">Prevalence<br></th>
-                                    </tr>
-                                    <tr>
-                                        <td class="tg-031e">1</td>
-                                        <td class="tg-031e">50%+</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="tg-031e">2</td>
-                                        <td class="tg-031e">30%-49.9%</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="tg-031e">3</td>
-                                        <td class="tg-031e">20-29.9%</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="tg-031e">4</td>
-                                        <td class="tg-031e">10-19.9%</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="tg-031e">5</td>
-                                        <td class="tg-031e">0-9.9%</td>
-                                    </tr>
-                                </table>
+                                Prevalence information is calculated based on hits amongst a species. Currently prevalence scales support E.Coli, Salmonella, Listeria, Vibrio, Staph and Campylobactor.
+                                If the organism doesn't correspond to these 6 bacteria, then a standard output of detected genes will be generated<br><br>
                             </div>
                         </div>
                     </div>
@@ -140,22 +115,41 @@
                                                     {% elif project.amr_results == "Error" %}
                                                         <button disabled type="submit" id="submit" class="btn btn-danger btn-xs custombutton">Error</button>
                                                     {% elif project.amr_results == "Success" %}
-                                                        <div>
-                                                            <table>
-                                                                <tr>
-                                                                    <td>
-                                                                        <form class="form-inline" role="form" action="{% url "amr" %}" method="post">
-                                                                            {% csrf_token %}
-                                                                            <input type="hidden" name="result" value="{{ project.geneseekr_results.name }}">
-                                                                            <input type="hidden" name="id" value="{{ project.id }}">
-                                                                            <button type="submit" id="submit" class="btn btn-success btn-xs custombutton">Results</button>
-                                                                        </form>
-                                                                    </td>
-                                                                    <td style="padding: 5px">
-                                                                        <a href="{{ project.geneseekr_results.url }}" class="btn btn-primary btn-xs"><i class="fa fa-fw fa-cloud-download"></i></a>
-                                                                    </td>
-                                                            </table>
-                                                        </div>
+                                                        {% if project.geneseekr_results %}
+                                                            <div>
+                                                                <table>
+                                                                    <tr>
+                                                                        <td>
+                                                                            <form class="form-inline" role="form" action="{% url "amr" %}" method="post">
+                                                                                {% csrf_token %}
+                                                                                <input type="hidden" name="result" value="{{ project.geneseekr_results.name }}">
+                                                                                <input type="hidden" name="id" value="{{ project.id }}">
+                                                                                <button type="submit" id="submit" class="btn btn-success btn-xs custombutton">Results</button>
+                                                                            </form>
+                                                                        </td>
+                                                                        <td style="padding: 5px">
+                                                                            <a href="{{ project.geneseekr_results.url }}" class="btn btn-primary btn-xs"><i class="fa fa-fw fa-cloud-download"></i></a>
+                                                                        </td>
+                                                                </table>
+                                                            </div>
+                                                        {% elif project.srst2_results %}
+                                                            <div>
+                                                                <table>
+                                                                    <tr>
+                                                                        <td>
+                                                                            <form class="form-inline" role="form" action="{% url "amr" %}" method="post">
+                                                                                {% csrf_token %}
+                                                                                <input type="hidden" name="result" value="{{ project.srst2_results.name }}">
+                                                                                <input type="hidden" name="id" value="{{ project.id }}">
+                                                                                <button type="submit" id="submit" class="btn btn-success btn-xs custombutton">Results</button>
+                                                                            </form>
+                                                                        </td>
+                                                                        <td style="padding: 5px">
+                                                                            <a href="{{ project.srst2_results.url }}" class="btn btn-primary btn-xs"><i class="fa fa-fw fa-cloud-download"></i></a>
+                                                                        </td>
+                                                                </table>
+                                                            </div>
+                                                        {% endif %}
                                                     {% endif %}
                                                 </td>
                                             </tr>
@@ -168,8 +162,8 @@
                             {% if results %}
                                 <div class="tab-pane fade in active" id=2>
                                     <div id="container" style="width: 750px; height: 600px; margin: 0 auto"></div>
-                                </div>
-                                 <table id="T2" class="table table-striped table-condensed">
+
+                                <table id="T2" class="table table-striped table-condensed">
                                     <caption style="font-size: 1.5em">{{ caption.3 }} AMR Results for {{ caption.0 }}<br>Prevalence Calculated From {{ caption.1 }}</caption>
                                     <thead>
                                     <tr><th>Class</th>
@@ -195,170 +189,171 @@
                                     </tbody>
 
                                 </table>
+                                </div>
                             {% endif %}
-                            </div><!-- /.box-body -->
-                        </div><!-- /.box -->
-                    </div><!-- /.col -->
-                </div>
+                        </div><!-- /.box-body -->
+                    </div><!-- /.box -->
+                </div><!-- /.col -->
             </div>
+        </div>
 
-<!-- Datatables Initialization Script -->
-<script type="text/javascript">
+        <!-- Datatables Initialization Script -->
+        <script type="text/javascript">
 
-    //Initialize datatables and sort by Date descending
-    $('#T1').DataTable( {
-        "order": [[ 0, "desc" ]]
-    } );
+            //Initialize datatables and sort by Date descending
+            $('#T1').DataTable( {
+                "order": [[ 0, "desc" ]]
+            } );
 
-    $('#T2').DataTable( {
-        dom: 'CT<"clear">lfrtip',
-        tableTools: {
-            "aButtons": [ "copy", "xls","print"],
-            "sSwfPath": '{% static 'swf/copy_csv_xls_pdf.swf' %}'
-        },
-        "sScrollX": "100%"
-    } );
+            $('#T2').DataTable( {
+                dom: 'CT<"clear">lfrtip',
+                tableTools: {
+                    "aButtons": [ "copy", "xls","print"],
+                    "sSwfPath": '{% static 'swf/copy_csv_xls_pdf.swf' %}'
+                },
+                "sScrollX": "100%"
+            } );
 
 
-    $(".progress-bar").animate({
-        width: "100%"
-    }, 11000);
+            $(".progress-bar").animate({
+                width: "100%"
+            }, 11000);
 
-    var categories = [{% for key in results %}"{{ key }}",{% endfor %}],
-    data = [
-        {% for key, value in results.items %}
-            {
-                y: {{ value|length}},
-                color: "{% cycle '#8B008B' '#4B0082' '#483D8B' '#00008B' '#27408B' '#6495ED' '#104E8B' '#36648B' '#00688B' '#33A1C9' '#00868B' '#03A89E' '#00C78C' '#008B45' '#00CD00' '#698B22' as cols %}",
-                drilldown: {
-                    name: 'NCBI Accession',
-                    categories: [{% for k, v in value.items %}'{{ k }}',{% endfor %}],
-                    data: [{% if caption.1 == 'N/A' %}
-                            {% for k,v in value.items %}1,{% endfor %}
-                          {% else %}
-                            {% for k,v in value.items %}{{ v.rarity }},{% endfor %}
-                          {% endif %}],
-                    identity: [{% for k,v in value.items %}"{{ v.identity }}",{% endfor %}],
-                    annotation: [{% for k,v in value.items %}"{{ v.annotation }}",{% endfor %}]
+            var categories = [{% for key in results %}"{{ key }}",{% endfor %}],
+                data = [
+                    {% for key, value in results.items %}
+                        {
+                            y: {{ value|length}},
+                            color: "{% cycle '#8B008B' '#4B0082' '#483D8B' '#00008B' '#27408B' '#6495ED' '#104E8B' '#36648B' '#00688B' '#33A1C9' '#00868B' '#03A89E' '#00C78C' '#008B45' '#00CD00' '#698B22' as cols %}",
+                            drilldown: {
+                                name: 'NCBI Accession',
+                                categories: [{% for k, v in value.items %}'{{ k }}',{% endfor %}],
+                                data: [{% if caption.1 == 'N/A' %}
+                                    {% for k,v in value.items %}1,{% endfor %}
+                                {% else %}
+                                    {% for k,v in value.items %}{{ v.rarity }},{% endfor %}
+                                {% endif %}],
+                                identity: [{% for k,v in value.items %}"{{ v.identity }}",{% endfor %}],
+                                annotation: [{% for k,v in value.items %}"{{ v.annotation }}",{% endfor %}]
+                            }
+                        },
+                    {% endfor %}
+                ],
+                browserData = [],
+                versionsData = [],
+                rarityData = [],
+                i,
+                j,
+                dataLen = data.length,
+                drillDataLen,
+                brightness;
+
+
+            // Build the data arrays
+            var value;
+            for (i = 0; i < dataLen; i += 1) {
+
+                // add browser data
+                browserData.push({
+                    name: categories[i],
+                    y: data[i].y,
+                    color: data[i].color
+                });
+
+                // add version data
+                var colourRarity;
+                drillDataLen = data[i].drilldown.data.length;
+                for (j = 0; j < drillDataLen; j += 1) {
+                    value = data[i].drilldown.data[j];
+                    if (value < 0.1) {
+                        colourRarity = '#E50500';
+                    } else if (value < 0.25) {
+                        colourRarity = '#F2615E';
+                    } else if (value < 0.5) {
+                        colourRarity = '#FFBDBD';
+                    } else {
+                        colourRarity = 'grey';
+                    }
+                    brightness = 0.2 - (j / drillDataLen) / 5;
+                    versionsData.push({
+                        name: data[i].drilldown.categories[j],
+                        y: 1, //data[i].drilldown.data[j],
+                        info: data[i].drilldown.identity[j],
+                        anno: data[i].drilldown.annotation[j],
+                        color: Highcharts.Color(data[i].color).brighten(brightness).get()
+                    });
+                    rarityData.push({
+                        name: data[i].drilldown.categories[j],
+                        y: 1, //data[i].drilldown.data[j],
+                        info: value,
+                        color: colourRarity
+                    });
                 }
-            },
-        {% endfor %}
-    ],
-    browserData = [],
-    versionsData = [],
-    rarityData = [],
-    i,
-    j,
-    dataLen = data.length,
-    drillDataLen,
-    brightness;
-
-
-// Build the data arrays
-    var value;
-    for (i = 0; i < dataLen; i += 1) {
-
-        // add browser data
-        browserData.push({
-            name: categories[i],
-            y: data[i].y,
-            color: data[i].color
-        });
-
-        // add version data
-        var colourRarity;
-        drillDataLen = data[i].drilldown.data.length;
-        for (j = 0; j < drillDataLen; j += 1) {
-            value = data[i].drilldown.data[j];
-            if (value < 0.1) {
-                colourRarity = '#E50500';
-            } else if (value < 0.25) {
-                colourRarity = '#F2615E';
-            } else if (value < 0.5) {
-                colourRarity = '#FFBDBD';
-            } else {
-                colourRarity = 'grey';
             }
-            brightness = 0.2 - (j / drillDataLen) / 5;
-            versionsData.push({
-                name: data[i].drilldown.categories[j],
-                y: 1, //data[i].drilldown.data[j],
-                info: data[i].drilldown.identity[j],
-                anno: data[i].drilldown.annotation[j],
-                color: Highcharts.Color(data[i].color).brighten(brightness).get()
+
+            // Create the chart
+            Highcharts.chart('container', {
+                chart: {
+                    type: 'pie'
+                },
+                title: {
+                    text: 'NCBI AMR Target Detection For ' + "{{ caption.0 }}"
+                },
+                subtitle: {
+                    text: 'Prevalence Calculated For ' + "{{ caption.1 }}"
+                },
+                yAxis: {
+                    title: {
+                        text: 'AMR Targets'
+                    }
+                },
+                plotOptions: {
+                    pie: {
+                        shadow: false,
+                        center: ['50%', '50%']
+                    }
+                },
+                tooltip: {
+                    shared: false,
+                    formatter: function() {
+                        var text = '';
+                        if(this.series.name == 'Rarity') {
+                            text = "Prevalence Factor: " + this.point.info;
+                        } else if (this.series.name == "Gene") {
+                            text = "Identity: " + this.point.info + "\n" + "Annotation: " + this.point.anno;
+                        } else {
+                            text = this.point.name;
+                        }
+                        return text;
+                    }
+                },
+                series: [{
+                    name: 'Class',
+                    data: browserData,
+                    size: '60%',
+                    dataLabels: {
+                        color: '#ffffff',
+                        distance: -30
+                    }
+                }, {
+                    name: 'Gene',
+                    data: versionsData,
+                    size: '95%',
+                    innerSize: '60%',
+                    dataLabels: {
+                        formatter: function () {
+                            return null;
+                        }
+                    }
+                },{
+                    name: 'Rarity',
+                    data: rarityData,
+                    size: '100%',
+                    innerSize: '95%'
+                }]
             });
-            rarityData.push({
-                name: data[i].drilldown.categories[j],
-                y: 1, //data[i].drilldown.data[j],
-                info: value,
-                color: colourRarity
-            });
-        }
-    }
 
-// Create the chart
-Highcharts.chart('container', {
-    chart: {
-        type: 'pie'
-    },
-    title: {
-        text: 'NCBI AMR Target Detection For ' + "{{ caption.0 }}"
-    },
-    subtitle: {
-        text: 'Prevalence Calculated For ' + "{{ caption.1 }}"
-    },
-    yAxis: {
-        title: {
-            text: 'AMR Targets'
-        }
-    },
-    plotOptions: {
-        pie: {
-            shadow: false,
-            center: ['50%', '50%']
-        }
-    },
-    tooltip: {
-        shared: false,
-        formatter: function() {
-            var text = '';
-            if(this.series.name == 'Rarity') {
-                text = "Prevalence Factor: " + this.point.info;
-            } else if (this.series.name == "Gene") {
-                text = "Identity: " + this.point.info + "\n" + "Annotation: " + this.point.anno;
-            } else {
-                text = this.point.name;
-            }
-            return text;
-        }
-    },
-    series: [{
-        name: 'Class',
-        data: browserData,
-        size: '60%',
-        dataLabels: {
-            color: '#ffffff',
-            distance: -30
-        }
-    }, {
-        name: 'Gene',
-        data: versionsData,
-        size: '95%',
-        innerSize: '60%',
-        dataLabels: {
-            formatter: function () {
-                return null;
-            }
-        }
-    },{
-        name: 'Rarity',
-        data: rarityData,
-        size: '100%',
-        innerSize: '95%'
-    }]
-});
-
-</script>
+        </script>
 
     </section><!-- /.content -->
 {% endblock %}

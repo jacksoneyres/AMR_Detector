@@ -14,47 +14,14 @@
                 <!-- Default box -->
                 <div class="box box-solid box-success">
                     <div class="box-header">
-                        <h3 class="box-title">Development Version (BETA)</h3>
+                        <h3 class="box-title">Information</h3>
                     </div>
                     <div class="box-body">
-                        <p>Most Features Currently Working. </p>
-                        <p>This website is designed to process genomics data using a variety of tools. </p><br>
+                        <p>This webtool assists with the detection of antimicrobial resistance genes in bacteria genomes.
+                            Genomes can be uploaded in either .fasta or .fastq.gz format. Upon upload, species determination will be performed
+                        followed by AMR detection, and result generation. </p><br>
 
-                        Here is a sample bacterial <a href='{% static '/documents/Ecoli_Sample.fasta' %}'> E.coli genome</a> to get you started. You can upload this file directly to GeneSeekr,
-                        MLST or AMR tools.
-
-                        <br><br>
-                        For PrimerVerifyR here is a sample set of primers for Salmonella,<br>
-                        F:  GTGATCTGAAATCCAGCTTCAAG<br>
-                        R:  AAGTTTCGCACTCTCGTTTTTGG<br>
-                    </div><!-- /.box-body -->
-                </div><!-- /.box -->
-            </div><!-- /.col -->
-        </div>
-        <div class="row">
-            <div class="col-md-4">
-                <!-- Default box -->
-                <div class="box box-solid box-info">
-                    <div class="box-header">
-                        <h3 class="box-title">Updates</h3>
-                    </div>
-                    <div class="box-body">
-
-                        <strong>March 30, 2016</strong>
-                        <ul>
-                            <li>PrimerVerifyR and GeneSeekR implemented with large updated databases of Vibrio, Salmonella, E.Coli, Campylobacter, Shigella and Listeria genomes</li>
-                            <li>FastQ supported implemented for GeneSeekR, MLST and AMR</li>
-                            <li>SPAdes Assembly of Single Genomes</li>
-                        </ul>
-
-                        <strong>Future Timeline</strong>
-                        <ul>
-                            <li>(Spring) OLC Assembly Pipeline</li>
-                            <li>(Spring) Fastq Based ARMI</li>
-                            <li>(Summer) Multiple Sequence Alignment Primer and Probe Design</li>
-                            <li>(Summer) Reference Based SNP Calling and Phylogeny (CFSAN, SNVPhyl)</li>
-                            <li>(Summer) Reference Free SNP Calling and Phylogeny (kSNP)</li>
-                        </ul>
+                        Here is a sample bacterial <a href='{% static '/documents/Ecoli_Sample.fasta' %}'> E.coli genome</a> to get you started.
                     </div><!-- /.box-body -->
                 </div><!-- /.box -->
             </div><!-- /.col -->
