@@ -1,5 +1,5 @@
 FROM ubuntu:16.04
-MAINTAINER Jackson Eyres, jackson.eyres@inspection.gc.ca
+MAINTAINER Jackson Eyres, jackson.eyres@gmail.com
 
 #COPY sources.list /etc/apt/sources.list
 
@@ -37,7 +37,6 @@ RUN pip install subprocess32
 COPY . /app
 
 EXPOSE 8000
-ENV PATH /app/ePCR/:$PATH
 ENV PATH /samtools/:$PATH
 
 ENV C_FORCE_ROOT 1
