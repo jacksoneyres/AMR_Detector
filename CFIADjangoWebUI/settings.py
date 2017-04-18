@@ -68,7 +68,7 @@ DATABASES = {
         # The following settings are used to set up Postgres
         'USER': 'admin',
         'PASSWORD': 'biohazard',
-        'HOST': 'localhost',
+        'HOST': 'postgres',
         #'HOST': '192.168.1.3', # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
         #'PORT': '31042',# Set to empty string for default.
     }
@@ -129,7 +129,7 @@ EMAIL_PORT = 587
 # Celery
 import SilentD.tasks
 # BROKER_URL = 'amqp://'
-BROKER_URL = 'amqp://guest:guest@127.0.0.1:5672//'
+BROKER_URL = 'amqp://guest:guest@rabbit:5672//'
 CELERY_RESULT_BACKEND = 'amqp://'
 # djcelery.setup_loader()
 CELERY_IMPORTS = ("tasks", )

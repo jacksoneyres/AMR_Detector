@@ -229,7 +229,7 @@ def amr(request):
 
             if 'GeneSeekr' or "SRST2" in path:
                 json_dict = {}
-                with open("documents/AMR/AMR_Data.json") as f:
+                with open("AMR_Data.json") as f:
                     json_dict = json.loads(f.read())
                 if "GeneSeekr" in path:
                     with open(proj_obj.geneseekr_results.name) as g:
