@@ -55,7 +55,7 @@ def amr_task(self, obj_id):
                 print sorted_list[0]
                 print "Running GeneSeekR"
 
-                call(['GeneSeekr', '-o', working_dir, '-m', "NCBI_AMR.fasta", "-c", "90", working_dir])
+                call(['GeneSeekr', '-o', working_dir, '-m', "NCBI_AMR.fasta", "-c", "98", working_dir])
 
                 # Save Results, Check file exists, if so, make sure it actually contains results
                 result_file = glob.glob(os.path.join(working_dir, '*.csv'))

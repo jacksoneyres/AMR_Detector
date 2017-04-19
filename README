@@ -1,11 +1,10 @@
-Requires POSTGRES, RabbitMQ, Docker
+Requires Docker
 
 SETUP
 
-docker run --name postgres_amr -p 127.0.0.1:5432:5432 -e POSTGRES_PASSWORD=biohazard -e POSTGRES_USER=admin -e POSTGRES_DB=mydb -e PGDATA=/var/lib/postgresql/data/pgdata -v /home/eyresj/Postgres_AMR:/var/lib/postgresql/data/pgdata --restart=always -d postgres
-
-docker run -d --restart=always --hostname rabbit --name rabbit rabbitmq:3
-
-docker run -v /mnt/portal/genomics_portal:/app/documents -p 0.0.0.0:8000:8000 --link rabbit:rabbit --link postgres:db portal
+sudo docker run --name postgres -e POSTGRES_PASSWORD=biohazard -e POSTGRES_USER=admin -e POSTGRES_DB=mydb -e PGDATA=/var/lib/postgresql/data/pgdata -v /home/eyresj/pgdata:/var/lib/postgresql/data/pgdata --restart=always -d postgres
+sudo docker run -d --restart=always --hostname rabbit --name rabbit rabbitmq:3
+sudo docker run -v ~/test:/app/documents -p 0.0.0.0:8000:8000 --link rabbit:rabbit --link postgres:postgres jacksoneyres/amr
+-detector
 
 
