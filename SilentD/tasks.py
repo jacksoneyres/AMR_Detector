@@ -17,6 +17,9 @@ app = Celery('tasks',
 
 @app.task(bind=True)
 def amr_task(self, obj_id):
+    # Files are either uploaded as fasta or fastq. First step is copying over the files to working directory,
+    # then performing mash analysis to find closest reference and assigning that to database object. This is followed by
+    # running either GeneSeekR or SRST2, waiting for results then adding results to database and ending the task
     print self
     project_obj = Project.objects.get(id=obj_id)
     data_files = project_obj.files.all()
@@ -30,6 +33,7 @@ def amr_task(self, obj_id):
         if not os.path.exists(working_dir):
             os.makedirs(working_dir)
         shutil.copyfile(data.file.name, end_path)
+
 
     if project_obj.type == "fasta":
             try:

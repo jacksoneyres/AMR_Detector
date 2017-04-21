@@ -1,8 +1,6 @@
 FROM ubuntu:16.04
 MAINTAINER Jackson Eyres, jackson.eyres@gmail.com
 
-#COPY sources.list /etc/apt/sources.list
-
 RUN apt-get update && apt-get install -y \
 		python \
 		python-dev \

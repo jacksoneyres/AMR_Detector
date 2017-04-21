@@ -1,10 +1,19 @@
-Requires Docker
+AMR_Detector
+Web application for the detection of antimicrobial resistance in bacterial whole genomes
+
+Author: Jackson Eyres
 
 SETUP
 
-sudo docker run --name postgres -e POSTGRES_PASSWORD=biohazard -e POSTGRES_USER=admin -e POSTGRES_DB=mydb -e PGDATA=/var/lib/postgresql/data/pgdata -v /home/eyresj/pgdata:/var/lib/postgresql/data/pgdata --restart=always -d postgres
+Requires Docker
+Tested on Ubuntu 16.04
+
+Create two folders on host machine to store database and uploaded files outside the containers
+Swap out <Path to Folder 1> and <Path to Folder 2> in below code with appropriate paths on host
+
+sudo docker run --name postgres -e POSTGRES_PASSWORD=biohazard -e POSTGRES_USER=admin -e POSTGRES_DB=mydb -e PGDATA=/var/lib/postgresql/data/pgdata -v <Path to Folder 1>:/var/lib/postgresql/data/pgdata --restart=always -d postgres
 sudo docker run -d --restart=always --hostname rabbit --name rabbit rabbitmq:3
-sudo docker run -v ~/test:/app/documents -p 0.0.0.0:8000:8000 --link rabbit:rabbit --link postgres:postgres jacksoneyres/amr
--detector
+sudo docker run -v <Path to Folder 2>:/app/documents -p 0.0.0.0:8000:8000 --link rabbit:rabbit --link postgres:postgres jacksoneyres/amr_detector
 
-
+You should then be able to visit 0.0.0.0:8000 in a browser
+Initial account is admin, admin

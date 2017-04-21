@@ -209,7 +209,7 @@ def file_upload(request):
 
 @login_required
 def amr(request):
-    # Project.objects.all().delete()
+
     username = ''
     if request.user.is_authenticated():
         username = request.user.username
@@ -306,7 +306,7 @@ def amr(request):
                         for key, value in display_dict.items():
                             if value["class"] == item:
                                 results_dict[item][key] = value
-                print results_dict
+
                 all_projects = Project.objects.filter(user=username)
                 caption = [proj_obj.description, organism]
                 return render(request, 'SilentD/amr.html', {'projects': all_projects,
